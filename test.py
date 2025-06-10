@@ -13,9 +13,11 @@ import time
 # ======================
 MANUAL_CATEGORIES = [
     ("Landing_Page", "https://www.quickmart.co.ke/foods"),
+
     ("Foods", "https://www.quickmart.co.ke/foods"),
     ("Fresh Produce", "https://www.quickmart.co.ke/fresh"),
     ("Personal Care", "https://www.quickmart.co.ke/personal-care"),
+    # ("Liquor", "https://www.quickmart.co.ke/liquor")
     ("Household Items", "https://www.quickmart.co.ke/households"), 
     ("Home Care", "https://www.quickmart.co.ke/homecare"),
     ("Electronics", "https://www.quickmart.co.ke/electronics"),
@@ -54,6 +56,52 @@ def accept_store_modal(driver):
         print(f"❌ Failed to accept store modal: {str(e)}")
         return False
 
+
+
+# def handle_age_verification(driver):
+#     """Handles the age verification modal with more precise targeting"""
+#     try:
+#         # First ensure no other modals are blocking (like store selection)
+#         WebDriverWait(driver, 5).until(
+#             EC.invisibility_of_element_located((By.ID, "shopPopupJs")))
+        
+#         # Check for age verification modal (looking for the specific buttons)
+#         try:
+#             WebDriverWait(driver, 5).until(
+#                 EC.presence_of_element_located((By.XPATH, "//button[contains(@onclick, 'catConsent') and contains(., 'Yes')]")))
+            
+#             # More precise targeting of the modal content
+#             modal_content = driver.find_element(By.XPATH, "//div[@class='modal-content']//button[contains(@onclick, 'catConsent')]")
+            
+#             # Scroll into view just in case
+#             driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", modal_content)
+#             time.sleep(1)
+            
+#             # Click the Yes button using JavaScript to avoid interception
+#             yes_button = WebDriverWait(driver, 5).until(
+#                 EC.element_to_be_clickable((By.XPATH, "//button[contains(@onclick, \"catConsent\") and contains(., 'Yes')]")))
+            
+#             driver.execute_script("arguments[0].click();", yes_button)
+#             print("✅ Age verification confirmed")
+            
+#             # Wait for modal to disappear - checking for the specific buttons to be gone
+#             WebDriverWait(driver, 5).until(
+#                 EC.invisibility_of_element_located((By.XPATH, "//button[contains(@onclick, 'catConsent')]")))
+            
+#             time.sleep(1)  # Small pause after dismissal
+#             return True
+            
+#         except TimeoutException:
+#             # No age verification modal found - that's fine
+#             return True
+            
+#     except Exception as e:
+#         print(f"⚠️ Failed to handle age verification: {str(e)}")
+#         # Try to refresh and continue if this fails
+#         driver.refresh()
+#         time.sleep(3)
+#         return False
+    
 def scrape_products_page(driver, category_name):
     """Extracts products from current page"""
     products = []
@@ -136,6 +184,11 @@ def scrape_category(driver, category_name, category_url):
     print(f"\n🔍 Scraping category: {category_name}")
     driver.get(category_url)
     time.sleep(PAGE_LOAD_DELAY)
+
+    # # ✅ Handle age verification if needed
+    # if not handle_age_verification(driver):
+    #     print("   ⚠️ Skipping category due to age verification failure")
+    #     return []
     
     all_products = []
     page = 1
