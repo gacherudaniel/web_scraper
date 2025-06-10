@@ -25,7 +25,7 @@ MANUAL_CATEGORIES = [
 
 OUTPUT_FILE = "quickmart_products.xlsx"  # Single output file for all categories
 PAGE_LOAD_DELAY = 3  # Seconds to wait between page loads
-MAX_PAGES = 20  # Safety limit to prevent infinite loops
+MAX_PAGES = 40  # Safety limit to prevent infinite loops
 
 # ======================
 # SETUP SELENIUM DRIVER
