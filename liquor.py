@@ -13,14 +13,14 @@ import os
 # CONFIGURATION
 # ======================
 MANUAL_CATEGORIES = [
-    ("Landing_Page", "https://www.quickmart.co.ke/foods"),
+    # ("Landing_Page", "https://www.quickmart.co.ke"),
     ("Liquor", "https://www.quickmart.co.ke/liquor")
 ]
 
-OUTPUT_FILE = "quickmart_products.xlsx"
+OUTPUT_FILE = "quickmart_liquor_products.xlsx"
 PAGE_LOAD_DELAY = 3
 MAX_PAGES = 40
-DEBUG_SCREENSHOTS = True  # Set to True to save screenshots when errors occur
+DEBUG_SCREENSHOTS = True
 SCREENSHOT_DIR = "debug_screenshots"
 
 # ======================
@@ -30,6 +30,7 @@ def setup_driver():
     options = Options()
     options.add_argument("--start-maximized")
     options.add_argument("--disable-notifications")
+    options.add_argument("--disable-popup-blocking")
     driver = webdriver.Chrome(options=options)
     return driver
 
@@ -51,94 +52,124 @@ def save_screenshot(driver, name):
 # ======================
 def accept_store_modal(driver):
     try:
-        WebDriverWait(driver, 15).until(
-            EC.visibility_of_element_located((By.ID, "shopPopupJs")))
-        
-        continue_btn = WebDriverWait(driver, 15).until(
-            EC.element_to_be_clickable((By.XPATH, "//button[contains(text(), 'Continue')]")))
-        
-        driver.execute_script("arguments[0].click();", continue_btn)
-        print("✅ Store selection confirmed")
-        
-        WebDriverWait(driver, 10).until(
-            EC.invisibility_of_element_located((By.ID, "shopPopupJs")))
-        
-        time.sleep(2)
-        return True
+        # First try to find and close any popup that might be blocking
+        try:
+            WebDriverWait(driver, 5).until(
+                EC.visibility_of_element_located((By.CSS_SELECTOR, ".modal-content")))
+            print("ℹ️ Found a modal - attempting to handle")
+        except:
+            print("ℹ️ No initial modal found - proceeding")
+            return True
+
+        # Try to find and click the continue button
+        try:
+            continue_btn = WebDriverWait(driver, 10).until(
+                EC.element_to_be_clickable((By.XPATH, "//button[contains(text(), 'Continue')]")))
+            driver.execute_script("arguments[0].click();", continue_btn)
+            print("✅ Clicked 'Continue' on store modal")
+            time.sleep(2)
+            return True
+        except:
+            print("⚠️ Couldn't find continue button - trying alternative approach")
+            
+        # If that fails, try to select a store directly
+        try:
+            store_select = WebDriverWait(driver, 5).until(
+                EC.element_to_be_clickable((By.CSS_SELECTOR, ".store-selector")))
+            store_select.click()
+            time.sleep(1)
+            
+            first_store = WebDriverWait(driver, 5).until(
+                EC.element_to_be_clickable((By.CSS_SELECTOR, ".store-list li:first-child")))
+            first_store.click()
+            time.sleep(1)
+            
+            confirm_btn = WebDriverWait(driver, 5).until(
+                EC.element_to_be_clickable((By.CSS_SELECTOR, ".confirm-store")))
+            confirm_btn.click()
+            print("✅ Selected first available store")
+            time.sleep(2)
+            return True
+        except Exception as e:
+            print(f"❌ Failed to select store: {str(e)}")
+            save_screenshot(driver, "store_selection_fail")
+            return False
+            
     except Exception as e:
-        print(f"❌ Failed to accept store modal: {str(e)}")
+        print(f"❌ Store modal handling failed: {str(e)}")
         save_screenshot(driver, "store_modal_fail")
         return False
 
 def handle_age_verification(driver):
-    """Enhanced age verification handling with retries and better debugging"""
-    max_retries = 3
-    for attempt in range(max_retries):
-        try:
-            # Ensure no other modals are blocking
-            WebDriverWait(driver, 5).until(
-                EC.invisibility_of_element_located((By.ID, "shopPopupJs")))
+    """Handle the age verification modal shown in the HTML you provided"""
+    try:
+        # Check for age verification modal
+        modal = WebDriverWait(driver, 5).until(
+            EC.presence_of_element_located((By.CSS_SELECTOR, ".modal-content"))
+        )
+        
+        # Check if it's the age verification modal
+        if "Consent" in modal.text or "Disclaimer" in modal.text:
+            print("🔞 Age verification modal detected")
             
-            # Check for age verification modal
-            try:
-                yes_button = WebDriverWait(driver, 5).until(
-                    EC.presence_of_element_located((By.XPATH, "//button[contains(@onclick, 'catConsent') and contains(., 'Yes')]")))
-                
-                print("🔍 Age verification modal detected")
-                save_screenshot(driver, f"age_modal_attempt_{attempt+1}")
-                
-                # Scroll to button
-                driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", yes_button)
-                time.sleep(1)
-                
-                # Click using JavaScript
-                driver.execute_script("arguments[0].click();", yes_button)
-                print("✅ Clicked 'Yes' on age verification")
-                
-                # Verify modal disappeared
-                WebDriverWait(driver, 5).until(
-                    EC.invisibility_of_element_located((By.XPATH, "//button[contains(@onclick, 'catConsent')]")))
-                
-                return True
-                
-            except TimeoutException:
-                print("ℹ️ No age verification modal found - proceeding")
-                return True
-                
-        except Exception as e:
-            print(f"⚠️ Age verification attempt {attempt+1} failed: {str(e)}")
-            save_screenshot(driver, f"age_verify_fail_{attempt+1}")
-            if attempt < max_retries - 1:
-                print("🔄 Retrying...")
-                time.sleep(2)
-                driver.refresh()
-                time.sleep(3)
-            else:
-                print("❌ Max retries reached for age verification")
-                return False
+            # Find and click the 'Yes' button
+            yes_button = WebDriverWait(driver, 5).until(
+                EC.element_to_be_clickable((By.XPATH, "//button[contains(@onclick, 'catConsent') and contains(., 'Yes')]"))
+            )
+            
+            # Scroll to button and click with JavaScript
+            driver.execute_script("arguments[0].scrollIntoView();", yes_button)
+            time.sleep(1)
+            driver.execute_script("arguments[0].click();", yes_button)
+            print("✅ Clicked 'Yes' on age verification")
+            
+            # Wait for modal to disappear
+            WebDriverWait(driver, 5).until(
+                EC.invisibility_of_element_located((By.CSS_SELECTOR, ".modal-content"))
+            )
+            time.sleep(1)
+            return True
+        else:
+            print("ℹ️ Found a modal but not age verification - proceeding")
+            return True
+            
+    except TimeoutException:
+        print("ℹ️ No age verification modal found within timeout")
+        return True
+    except Exception as e:
+        print(f"⚠️ Error handling age verification: {str(e)}")
+        save_screenshot(driver, "age_verify_error")
+        return False
 
 # ======================
-# SCRAPING FUNCTIONS
+# MAIN SCRAPING FUNCTIONS
 # ======================
-def scrape_products_page(driver, category_name):
-    """Extracts products from current page with better error handling"""
+# def scrape_products_page(driver, category_name):
+    """Extracts products from current page"""
     products = []
     try:
         # Scroll to load lazy-loaded products
         driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-        time.sleep(3)
+        time.sleep(2)
+        driver.execute_script("window.scrollTo(0, 0);")
+        time.sleep(1)
         
-        # Verify products are loaded
-        WebDriverWait(driver, 10).until(
-            EC.presence_of_element_located((By.CSS_SELECTOR, ".products.productInfoJs")))
-        
+        # Get page source and parse with BeautifulSoup
         soup = BeautifulSoup(driver.page_source, "html.parser")
         
-        for product in soup.select(".products.productInfoJs"):
+        # Find all product elements
+        product_elements = soup.select(".products.productInfoJs")
+        if not product_elements:
+            print("⚠️ No products found on page")
+            save_screenshot(driver, "no_products_found")
+            return products
+            
+        for product in product_elements:
             try:
                 name = product.select_one(".products-title").get_text(strip=True)
-                price_elem = (product.select_one(".products-price-new") or 
-                            product.select_one(".products-price-old"))
+                
+                # Handle price - try new price first, then old price
+                price_elem = product.select_one(".products-price-new") or product.select_one(".products-price-old")
                 price = price_elem.get_text(strip=True) if price_elem else "Price not found"
                 
                 products.append({
@@ -147,59 +178,86 @@ def scrape_products_page(driver, category_name):
                     "Price": price
                 })
             except Exception as e:
-                print(f"⚠️ Error parsing product: {str(e)}")
+                print(f"⚠️ Error parsing a product: {str(e)}")
                 continue
                 
     except Exception as e:
         print(f"❌ Error scraping page: {str(e)}")
-        save_screenshot(driver, "scrape_page_error")
+        save_screenshot(driver, "page_scrape_error")
         
     return products
 
+
+def scrape_products_page(driver, category_name):    
+    """Extracts products from current page"""
+    products = []
+    # Scroll to load lazy-loaded products
+    driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+    time.sleep(3)  # Wait for loading
+    soup = BeautifulSoup(driver.page_source, "html.parser")
+    
+    for product in soup.select(".products.productInfoJs"):
+        try:
+            name = product.select_one(".products-title").get_text(strip=True)
+            price_elem = (product.select_one(".products-price-new") or 
+                         product.select_one(".products-price-old"))
+            price = price_elem.get_text(strip=True) if price_elem else "Price not found"
+            
+            products.append({
+                "Category": category_name,
+                "Product Name": name,
+                "Price": price
+            })
+        except Exception as e:
+            print(f"⚠️ Error parsing product: {str(e)}")
+            continue
+    
+    return products
+
+
 def scrape_category(driver, category_name, category_url):
-    """Enhanced category scraper with better error recovery"""
-    print(f"\n🔍 Scraping category: {category_name}")
+    """Scrape all pages of a category"""
+    print(f"\n🌐 Starting category: {category_name}")
+    
     try:
+        # Navigate to category URL
         driver.get(category_url)
         time.sleep(PAGE_LOAD_DELAY)
         
+        # Handle any modals
         if not handle_age_verification(driver):
-            print("   ⚠️ Age verification failed - trying to continue anyway")
-            # Continue scraping even if age verification failed
+            print("⚠️ Age verification may have failed - trying to continue anyway")
         
         all_products = []
-        page = 1
+        page_count = 1
         
-        while page <= MAX_PAGES:
-            print(f"   📄 Processing page {page}...")
+        while page_count <= MAX_PAGES:
+            print(f"   📖 Processing page {page_count}")
             
             # Scrape current page
             page_products = scrape_products_page(driver, category_name)
-            if not page_products:
-                print("   ❌ No products found - possible page load issue")
-                save_screenshot(driver, f"no_products_page_{page}")
-                break
-                
             all_products.extend(page_products)
-            print(f"   ✔ Found {len(page_products)} products on this page")
+            print(f"   ✔ Found {len(page_products)} products")
             
             # Try to go to next page
             try:
-                next_btn = WebDriverWait(driver, 5).until(
-                    EC.element_to_be_clickable((By.XPATH, "//li[contains(@class, 'next')]/button")))
-                driver.execute_script("arguments[0].click();", next_btn)
-                page += 1
+                next_button = WebDriverWait(driver, 5).until(
+                    EC.element_to_be_clickable((By.CSS_SELECTOR, "li.next button"))
+                )
+                driver.execute_script("arguments[0].click();", next_button)
+                page_count += 1
                 time.sleep(PAGE_LOAD_DELAY)
-                
             except (TimeoutException, NoSuchElementException):
                 print("   ⏹ Reached last page")
                 break
             except Exception as e:
                 print(f"   ❌ Pagination error: {str(e)}")
-                save_screenshot(driver, f"pagination_error_page_{page}")
+                save_screenshot(driver, "pagination_error")
                 break
-        
+                
         return all_products
+    
+
         
     except Exception as e:
         print(f"❌ Category scraping failed: {str(e)}")
@@ -213,33 +271,36 @@ def main():
     driver = setup_driver()
     
     try:
-        # Open site and accept store modal
+        # First visit homepage to set cookies/context
+        print("🏠 Visiting homepage...")
         driver.get("https://www.quickmart.co.ke")
+        time.sleep(3)
+        
+        # Handle store selection
         if not accept_store_modal(driver):
-            print("❌ Cannot proceed without store selection")
-            return
+            print("⚠️ Store selection failed - trying to continue anyway")
         
         # Scrape all categories
         all_products = []
         for cat_name, cat_url in MANUAL_CATEGORIES:
-            category_products = scrape_category(driver, cat_name, cat_url)
-            all_products.extend(category_products)
-            print(f"✅ Finished '{cat_name}' with {len(category_products)} products")
+            products = scrape_category(driver, cat_name, cat_url)
+            all_products.extend(products)
+            print(f"✅ Finished '{cat_name}' with {len(products)} products")
         
         # Save results
         if all_products:
             df = pd.DataFrame(all_products)
             df.to_excel(OUTPUT_FILE, index=False)
-            print(f"\n🎉 Success! Saved {len(all_products)} products to '{OUTPUT_FILE}'")
+            print(f"\n🎉 Success! Saved {len(all_products)} products to {OUTPUT_FILE}")
         else:
-            print("⚠️ No products were scraped")
+            print("😢 No products were scraped")
             
     except Exception as e:
-        print(f"❌ Critical error: {str(e)}")
+        print(f"💥 Critical error: {str(e)}")
         save_screenshot(driver, "main_error")
     finally:
         driver.quit()
-        print("Browser closed")
+        print("🌐 Browser closed")
 
 if __name__ == "__main__":
     main()
