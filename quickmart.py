@@ -25,7 +25,7 @@ MANUAL_CATEGORIES = [
     
 ]
 
-OUTPUT_FILE = "quickmart_products_test.xlsx"  # Single output file for all categories
+OUTPUT_FILE = "quickmart_products_11-06-2025.xlsx"  # Single output file for all categories
 PAGE_LOAD_DELAY = 3  # Seconds to wait between page loads
 MAX_PAGES = 150  # Safety limit to prevent infinite loops
 

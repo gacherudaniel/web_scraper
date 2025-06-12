@@ -2,8 +2,8 @@ import pandas as pd
 import re
 
 # Input and output file paths
-INPUT_FILE = "quickmart_products.xlsx"  # Your input Excel file
-OUTPUT_FILE = "categorized_products.xlsx"  # Output Excel file
+INPUT_FILE = "quickmart_liquor_products_11-06-2025.xlsx"  # Your input Excel file
+OUTPUT_FILE = "categorized_liquor_products_11-06-2025.xlsx"  # Output Excel file
 
 # Function to extract quantity and clean product name
 def extract_quantity_and_name(product_name):
