@@ -17,7 +17,7 @@ MANUAL_CATEGORIES = [
     ("Liquor", "https://www.quickmart.co.ke/liquor")
 ]
 
-OUTPUT_FILE = "quickmart_liquor_products_11-06-2025.xlsx"
+OUTPUT_FILE = "quickmart_liquor_products_12-06-2025.xlsx"
 PAGE_LOAD_DELAY = 3
 MAX_PAGES = 40
 DEBUG_SCREENSHOTS = True
