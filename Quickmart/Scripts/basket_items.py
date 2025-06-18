@@ -2,7 +2,7 @@ import pandas as pd
 from fuzzywuzzy import fuzz
 
 # Load datasets
-products_df = pd.read_excel("categorized_liquor_products_12-06-2025.xlsx")
+products_df = pd.read_excel("Quickmart/Quickmart Data/Categorized Data/categorized_products_18-06-2025.xlsx")
 cpi_basket_df = pd.read_excel("CPI basket.xlsx", sheet_name="Basket")
 
 # Preprocess CPI basket items
@@ -27,7 +27,7 @@ def is_likely_match(product_name, threshold=65):
     return False
 
 # Apply filtering
-filtered_df = products_df[products_df["Name"].apply(is_likely_match)].copy()
+filtered_df = products_df[products_df["product_name"].apply(is_likely_match)].copy()
 
 # Add matched CPI item for verification
 def get_matched_item(product_name, threshold=65):
@@ -39,10 +39,10 @@ def get_matched_item(product_name, threshold=65):
             matches.append((cpi_item, score))
     return max(matches, key=lambda x: x[1])[0] if matches else "No clear match"
 
-filtered_df["Matched CPI Item"] = filtered_df["Name"].apply(get_matched_item)
+filtered_df["Matched CPI Item"] = filtered_df["product_name"].apply(get_matched_item)
 
 # Save results
-filtered_df.to_excel("cpi_matched_liquor_products_12-06-2025.xlsx", index=False)
+filtered_df.to_excel("Quickmart/Quickmart Data/Filtered Data/cpi_matched_products_18-06-2025.xlsx", index=False)
 
 print(f"Filtered {len(filtered_df)}/{len(products_df)} products likely in CPI basket")
-print("Results saved to 'cpi_matchedl_products.xlsx'")
+print("Results saved to 'cpi_matched_products_18-06-2025.xlsx'")

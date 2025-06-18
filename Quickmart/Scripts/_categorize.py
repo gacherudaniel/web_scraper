@@ -2,8 +2,8 @@ import pandas as pd
 import re
 
 # Input and output file paths
-INPUT_FILE = "quickmart_liquor_products_12-06-2025.xlsx"  # Your input Excel file
-OUTPUT_FILE = "categorized_liquor_products_12-06-2025.xlsx"  # Output Excel file
+INPUT_FILE = "Quickmart/Quickmart Data/Raw Data/quickmart_products_18-06-2025.xlsx"  # Your input Excel file
+OUTPUT_FILE = "Quickmart/Quickmart Data/Categorized Data/categorized_products_18-06-2025.xlsx"  # Output Excel file
 
 # Function to extract quantity and clean product name
 def extract_quantity_and_name(product_name):
@@ -33,7 +33,7 @@ try:
     df = pd.read_excel(INPUT_FILE)
     
     # Apply the extraction function to each product name
-    df[['Name', 'Quantity']] = df['Product Name'].apply(
+    df[['Name', 'Quantity']] = df['name'].apply(
         lambda x: pd.Series(extract_quantity_and_name(x))
     )
     

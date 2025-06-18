@@ -13,7 +13,7 @@ import os
 # CONFIGURATION
 # ======================
 MANUAL_CATEGORIES = [
-    # ("Landing_Page", "https://www.quickmart.co.ke"),
+    ("Landing_Page", "https://www.quickmart.co.ke"),
     ("Liquor", "https://www.quickmart.co.ke/liquor")
 ]
 
@@ -242,7 +242,7 @@ def scrape_category(driver, category_name, category_url):
             # Try to go to next page
             try:
                 next_button = WebDriverWait(driver, 5).until(
-                    EC.element_to_be_clickable((By.CSS_SELECTOR, "li.next button"))
+                    EC.element_to_be_clickable((By.CSS_SELECTOR, "li.pagination-item.next > button"))
                 )
                 driver.execute_script("arguments[0].click();", next_button)
                 page_count += 1
