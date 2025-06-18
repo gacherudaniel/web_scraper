@@ -166,14 +166,6 @@ python Property_ke/propertyke.py
 - Detailed error logging
 - Graceful failure recovery
 
-## License
-
-[Your chosen license]
-
-## Authors
-
-[Your name]
-
 ## Acknowledgments
 
 - Quickmart Kenya
