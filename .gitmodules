@@ -1,0 +1,3 @@
+[submodule "Smarthub"]
+	path = Smarthub
+	url = git@github.com:gacherudaniel/scraper.git
