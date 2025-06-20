@@ -14,18 +14,18 @@ import time
 MANUAL_CATEGORIES = [
     ("Landing_Page", "https://www.quickmart.co.ke"),
 
-    ("Foods", "https://www.quickmart.co.ke/foods"),
-    ("Fresh Produce", "https://www.quickmart.co.ke/fresh"),
-    ("Personal Care", "https://www.quickmart.co.ke/personal-care"),
-    # ("Liquor", "https://www.quickmart.co.ke/liquor")
-    ("Household Items", "https://www.quickmart.co.ke/households"), 
-    ("Home Care", "https://www.quickmart.co.ke/homecare"),
-    ("Electronics", "https://www.quickmart.co.ke/electronics"),
+    # ("Foods", "https://www.quickmart.co.ke/foods"),
+    # ("Fresh Produce", "https://www.quickmart.co.ke/fresh"),
+    # ("Personal Care", "https://www.quickmart.co.ke/personal-care"),
+    # # ("Liquor", "https://www.quickmart.co.ke/liquor")
+    # ("Household Items", "https://www.quickmart.co.ke/households"), 
+    # ("Home Care", "https://www.quickmart.co.ke/homecare"),
+    # ("Electronics", "https://www.quickmart.co.ke/electronics"),
     ("Textile","https://www.quickmart.co.ke/textile")
     
 ]
 
-OUTPUT_FILE = "Quickmart/Quickmart Data/Raw Data/quickmart_products_18-06-2025.xlsx"  # Single output file for all categories
+OUTPUT_FILE = "Quickmart/Quickmart Data/Raw Data/test.xlsx"  # Single output file for all categories
 PAGE_LOAD_DELAY = 3  # Seconds to wait between page loads
 MAX_PAGES = 150  # Safety limit to prevent infinite loops
 

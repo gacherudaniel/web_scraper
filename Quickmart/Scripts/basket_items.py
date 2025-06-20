@@ -2,7 +2,7 @@ import pandas as pd
 from fuzzywuzzy import fuzz
 
 # Load datasets
-products_df = pd.read_excel("Quickmart/Quickmart Data/Categorized Data/categorized_products_18-06-2025.xlsx")
+products_df = pd.read_excel("Quickmart/Quickmart Data/Categorized Data/categorized_products_test.xlsx")
 cpi_basket_df = pd.read_excel("CPI basket.xlsx", sheet_name="Basket")
 
 # Preprocess CPI basket items
@@ -42,7 +42,7 @@ def get_matched_item(product_name, threshold=65):
 filtered_df["Matched CPI Item"] = filtered_df["product_name"].apply(get_matched_item)
 
 # Save results
-filtered_df.to_excel("Quickmart/Quickmart Data/Filtered Data/cpi_matched_products_18-06-2025.xlsx", index=False)
+filtered_df.to_excel("Quickmart/Quickmart Data/Filtered Data/cpi_matched_products_test.xlsx", index=False)
 
 print(f"Filtered {len(filtered_df)}/{len(products_df)} products likely in CPI basket")
-print("Results saved to 'cpi_matched_products_18-06-2025.xlsx'")
+print("Results saved to 'cpi_matched_products_test.xlsx'")
