@@ -7,6 +7,8 @@ from selenium.common.exceptions import TimeoutException, NoSuchElementException
 from bs4 import BeautifulSoup
 import pandas as pd
 import time
+from datetime import datetime
+
 
 # ======================
 # CONFIGURATION
@@ -14,18 +16,18 @@ import time
 MANUAL_CATEGORIES = [
     ("Landing_Page", "https://www.quickmart.co.ke"),
 
-    # ("Foods", "https://www.quickmart.co.ke/foods"),
-    # ("Fresh Produce", "https://www.quickmart.co.ke/fresh"),
-    # ("Personal Care", "https://www.quickmart.co.ke/personal-care"),
-    # # ("Liquor", "https://www.quickmart.co.ke/liquor")
-    # ("Household Items", "https://www.quickmart.co.ke/households"), 
-    # ("Home Care", "https://www.quickmart.co.ke/homecare"),
-    # ("Electronics", "https://www.quickmart.co.ke/electronics"),
+    ("Foods", "https://www.quickmart.co.ke/foods"),
+    ("Fresh Produce", "https://www.quickmart.co.ke/fresh"),
+    ("Personal Care", "https://www.quickmart.co.ke/personal-care"),
+    # ("Liquor", "https://www.quickmart.co.ke/liquor")
+    ("Household Items", "https://www.quickmart.co.ke/households"), 
+    ("Home Care", "https://www.quickmart.co.ke/homecare"),
+    ("Electronics", "https://www.quickmart.co.ke/electronics"),
     ("Textile","https://www.quickmart.co.ke/textile")
     
 ]
-
-OUTPUT_FILE = "Quickmart/Quickmart Data/Raw Data/test.xlsx"  # Single output file for all categories
+today_str = datetime.today().strftime("%d-%m-%Y")
+OUTPUT_FILE = f"Quickmart/Quickmart Data/Raw Data/Quickmart_raw_{today_str}.xlsx"  # Single output file for all categories
 PAGE_LOAD_DELAY = 3  # Seconds to wait between page loads
 MAX_PAGES = 150  # Safety limit to prevent infinite loops
 
@@ -83,28 +85,51 @@ def setup_driver():
     options.add_experimental_option("excludeSwitches", ["enable-automation"])
     options.add_experimental_option("useAutomationExtension", False)
     
+    options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36")
     driver = webdriver.Chrome(options=options)
     driver.execute_cdp_cmd("Network.setCacheDisabled", {"cacheDisabled": True})
     return driver
 
+import random
+import time
 
+def polite_delay(min_delay=2, max_delay=6):
+    delay = random.uniform(min_delay, max_delay)
+    time.sleep(delay)
 # ======================
 # SCRAPING FUNCTIONS
 # ======================
-def accept_store_modal(driver):
+def accept_store_modal(driver, location="Nairobi"):
+    """Handle the location modal with improved reliability"""
     try:
-        WebDriverWait(driver, 15).until(
-            EC.visibility_of_element_located((By.ID, "shopPopupJs")))
-        continue_btn = WebDriverWait(driver, 15).until(
-            EC.element_to_be_clickable((By.XPATH, "//button[contains(text(), 'Continue')]")))
-        continue_btn.click()
-        print("✅ Store selection confirmed")
-        time.sleep(3)  # Let page settle
-        return True
+        modal = WebDriverWait(driver, 15).until(
+            EC.presence_of_element_located((By.CLASS_NAME, "modal-content"))
+        )
+        if not modal.is_displayed():
+            return True
+        input_box = WebDriverWait(driver, 15).until(
+            EC.element_to_be_clickable((By.ID, "location_fld_popup"))
+        )
+        input_box.clear()
+        input_box.send_keys(location)
+        time.sleep(2)
+        try:
+            suggestions = WebDriverWait(driver, 5).until(
+                EC.presence_of_all_elements_located((By.CSS_SELECTOR, ".pac-item"))
+            )
+            if suggestions:
+                suggestions[0].click()
+                print(f"✅ Selected location: {location}")
+                time.sleep(2)
+                return True
+        except:
+            input_box.send_keys(Keys.ENTER)
+            time.sleep(2)
+            print(f"✅ Entered location: {location}")
+            return True
     except Exception as e:
-        print(f"❌ Failed to accept store modal: {str(e)}")
+        print(f"❌ Modal handling error: {str(e)}")
         return False
-
     
 
 
@@ -227,10 +252,18 @@ def scrape_category(driver, category_name, category_url):
 # ======================
 def main():
     driver = setup_driver()
+    driver.execute_cdp_cmd(
+        "Page.addScriptToEvaluateOnNewDocument",
+        {
+            "source": """
+            Object.defineProperty(navigator, 'webdriver', {get: () => undefined})
+            """
+        }
+    )
     
     try:
         # Open site and accept store modal
-        driver.get("https://qsoko-test.quickmart.co.ke")
+        driver.get("https://www.quickmart.co.ke")
         if not accept_store_modal(driver):
             return
         

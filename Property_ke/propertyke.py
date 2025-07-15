@@ -77,7 +77,7 @@ def extract_property_features(features_container):
 
 # [Rest of your script remains the same...]
 
-def extract_property_data(listing, base_url):
+# def extract_property_data(listing, base_url):
     """Extract detailed data from a single property listing"""
     property_data = {}
     
@@ -156,8 +156,62 @@ def extract_property_data(listing, base_url):
         agent_img = agent_element.find('img')
         property_data['agent_image'] = agent_img['src'] if agent_img and 'src' in agent_img.attrs else 'N/A'
     
+    return propert
+    property_data = {}
+
+    # Title
+    title_element = listing.find('h4')
+    property_data['title'] = title_element.get_text(strip=True) if title_element else 'N/A'
+
+    # Price
+    price_element = listing.find('h2')
+    property_data['price'] = price_element.get_text(strip=True) if price_element else 'N/A'
+
+    # Location
+    location_element = listing.find('p')
+    property_data['location'] = location_element.get_text(strip=True) if location_element else 'N/A'
+
+    # URL
+    link_element = listing.find_parent('a', href=True)
+    if link_element:
+        property_data['url'] = urljoin(base_url, link_element['href'])
+    else:
+        property_data['url'] = 'N/A'
+
+    # Image
+    img_element = listing.find('img')
+    property_data['image_url'] = img_element['src'] if img_element and 'src' in img_element.attrs else 'N/A'
+
     return property_data
 
+
+def extract_property_data(listing, base_url):
+    property_data = {}
+
+    # Title
+    title_element = listing.find('h4')
+    property_data['title'] = title_element.get_text(strip=True) if title_element else 'N/A'
+
+    # Price
+    price_element = listing.find('h2')
+    property_data['price'] = price_element.get_text(strip=True) if price_element else 'N/A'
+
+    # Location
+    location_element = listing.find('p')
+    property_data['location'] = location_element.get_text(strip=True) if location_element else 'N/A'
+
+    # URL
+    link_element = listing.find_parent('a', href=True)
+    if link_element:
+        property_data['url'] = urljoin(base_url, link_element['href'])
+    else:
+        property_data['url'] = 'N/A'
+
+    # Image
+    img_element = listing.find('img')
+    property_data['image_url'] = img_element['src'] if img_element and 'src' in img_element.attrs else 'N/A'
+
+    return property_data
 
 def scrape_property_listings(max_pages=100, delay_range=(5, 10)):
     driver = configure_driver()
@@ -181,7 +235,7 @@ def scrape_property_listings(max_pages=100, delay_range=(5, 10)):
             
             # Wait for listings to load
             WebDriverWait(driver, 15).until(
-                EC.presence_of_element_located((By.CLASS_NAME, "single-room-sale")))
+                EC.presence_of_element_located((By.CLASS_NAME, "popular-block")))
             
             # Respectful delay
             delay = random.uniform(*delay_range)
@@ -190,7 +244,7 @@ def scrape_property_listings(max_pages=100, delay_range=(5, 10)):
             
             # Parse page
             soup = BeautifulSoup(driver.page_source, 'html.parser')
-            listings = soup.find_all('div', class_='single-room-sale')
+            listings = soup.find_all('div', class_='popular-block')
             
             for listing in listings:
                 property_data = extract_property_data(listing, base_url)

@@ -1,5 +1,6 @@
 import pandas as pd
 import re
+from datetime import datetime
 
 def split_product_details(full_name):
     """Split product name into base name and quantity while preserving original name as description"""
@@ -99,7 +100,7 @@ def process_products(input_file):
         result_df = result_df[cols]
         
         # Save processed data
-        output_file = 'Quickmart/Quickmart Data/Categorized Data/categorized_products_test.xlsx'
+        output_file = f"Quickmart/Quickmart Data/Categorized Data/categorized_products_{today_str}.xlsx"
         result_df.to_excel(output_file, index=False)
         
         # Print summary with examples
@@ -117,6 +118,7 @@ def process_products(input_file):
         print(f"An error occurred: {str(e)}")
 
 if __name__ == "__main__":
-    input_file = "Quickmart/Quickmart Data/Raw Data/test.xlsx"
+    today_str = datetime.today().strftime("%d-%m-%Y")
+    input_file = f"Quickmart/Quickmart Data/Raw Data/Quickmart_raw_{today_str}.xlsx"
     process_products(input_file)
     categorize_products(input_file)
