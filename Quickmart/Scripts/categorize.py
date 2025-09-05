@@ -5,8 +5,8 @@ from datetime import datetime
 def split_product_details(full_name):
     """Split product name into base name and quantity while preserving original name as description"""
     if not isinstance(full_name, str):
-        return pd.Series({'product_name': None, 'quantity': None, 'description': None})
-    
+        return pd.Series({'product_name': None, 'quantity': None, 'unit': None, 'description': None})
+
     # Store original name as description
     description = full_name
     
@@ -20,7 +20,8 @@ def split_product_details(full_name):
         # Extract quantity and standardize unit
         qty_value = quantity_match.group(1)
         qty_unit = quantity_match.group(2).upper()
-        quantity = f"{qty_value}{qty_unit}"
+        quantity = qty_value
+        unit = qty_unit
         
         # Get product name by removing quantity
         product_name = re.split(quantity_pattern, full_name, maxsplit=1, flags=re.IGNORECASE)[0].strip()
@@ -28,10 +29,12 @@ def split_product_details(full_name):
         # If no quantity found
         product_name = full_name
         quantity = None
+        unit = None
     
     return pd.Series({
         'product_name': product_name,
         'quantity': quantity,
+        'unit': unit,
         'description': description
     })
 
@@ -96,7 +99,7 @@ def process_products(input_file):
         
         # Reorder columns to put description first
         cols = result_df.columns.tolist()
-        cols = ['description', 'product_name', 'quantity'] + [col for col in cols if col not in ['description', 'product_name', 'quantity']]
+        cols = ['description', 'product_name', 'quantity', 'unit'] + [col for col in cols if col not in ['description', 'product_name', 'quantity', 'unit']]
         result_df = result_df[cols]
         
         # Save processed data
