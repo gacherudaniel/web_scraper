@@ -103,9 +103,9 @@ def process_products(input_file):
         result_df = result_df[cols]
         
         # Save processed data
-        output_file = f"Quickmart/Quickmart Data/Categorized Data/categorized_products_{today_str}.xlsx"
-        result_df.to_excel(output_file, index=False)
-        
+        output_file = f"Quickmart/Quickmart Data/Categorized Data/Quickmart_{today_str}.xlsx"
+        result_df.to_excel(output_file, sheet_name='Quickmart', index=False)
+         
         # Print summary with examples
         print("\nProcessing Summary:")
         print(f"Total products processed: {len(result_df)}")
